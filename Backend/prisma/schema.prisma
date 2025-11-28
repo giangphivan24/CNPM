@@ -109,7 +109,8 @@ model CalendarEvent {
   priority    Priority  @default(MEDIUM)
   location    String?
   isCompleted Boolean   @default(false)
-  
+  maxAttendees    Int       @default(20) // Sức chứa tối đa (ví dụ: 20 người)
+  currentAttendees Int      @default(0)  // Số người đang đăng ký
   creator     User      @relation("EventCreator", fields: [creatorId], references: [id])
   creatorId   String
   
