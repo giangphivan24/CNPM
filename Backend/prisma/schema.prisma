@@ -1,0 +1,571 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+
+  otp           String?   // Mã OTP 
+  otpExpires    DateTime? // Thời gian hết hạn của OTP
+  
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(MENTEE)
+  department    String? // Khoa
+  major         String? // Chuyên ngành
+  year          Int? // Năm học (cho sinh viên)
+  bio           String? // Giới thiệu
+  achievements  String[] // Thành tích
+
+
+  // Mentor specific fields
+  mentorProfile MentorProfile?
+
+  // Connection relationships
+  // As a mentee
+  menteeConnections MenteeConnection[] @relation("AsMentee")
+  // As a mentor
+  mentorConnections MenteeConnection[] @relation("AsMentor")
+
+  // Social features
+  posts     Post[]
+  comments  Comment[]
+  reactions Reaction[]
+
+  // Reviews (back-relations)
+  givenReviews    Review[] @relation("ReviewReviewer")
+  receivedReviews Review[] @relation("ReviewMentor")
+
+  // MentorFeedback (back-relations)
+  mentorFeedbacksAsMentor  MentorFeedback[] @relation("FeedbackByMentor")
+  mentorFeedbacksAsMentee  MentorFeedback[] @relation("FeedbackForMentee")
+
+  // Chat features
+  ownedServers    ChatServer[]   @relation("ServerOwner")
+  memberOfServers ServerMember[]
+  messages        Message[]
+  receivedInvitations ServerInvitation[] @relation("InvitedUser")
+  sentInvitations     ServerInvitation[] @relation("InvitedBy")
+
+  recordings Recording[]
+
+  // NEW: Calendar & Analytics features
+  createdEvents      CalendarEvent[] @relation("EventCreator")
+  assignedEvents     EventAssignment[]
+  notifications      Notification[]
+  progressRecords    ProgressRecord[]
+  analyticsViews     AnalyticsView[]
+
+  chatConversations ChatConversation[]
+
+  // NEW: Assignment & Submission features
+  createdAssignments Assignment[] @relation("AssignmentTutor") // Assignments created by this Tutor
+  submissions        Submission[] @relation("SubmissionStudent") // Submissions made by this Student
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MentorProfile {
+  id            String   @id @default(cuid())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String   @unique
+  rating        Float    @default(0)
+  totalReviews  Int      @default(0)
+  expertise     String[]
+  maxMentees    Int      @default(5)
+  availableDays String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MenteeConnection {
+  id       String           @id @default(cuid())
+  mentee   User             @relation("AsMentee", fields: [menteeId], references: [id])
+  menteeId String
+  mentor   User             @relation("AsMentor", fields: [mentorId], references: [id])
+  mentorId String
+  status   ConnectionStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([menteeId, mentorId])
+}
+
+// NEW: Calendar Event System
+model CalendarEvent {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  type        EventType @default(PERSONAL)
+  priority    Priority  @default(MEDIUM)
+  location    String?
+  isCompleted Boolean   @default(false)
+  
+  creator     User      @relation("EventCreator", fields: [creatorId], references: [id])
+  creatorId   String
+  
+  assignments EventAssignment[]
+  reminders   EventReminder[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([creatorId])
+  @@index([startTime])
+}
+
+model EventAssignment {
+  id      String        @id @default(cuid())
+  event   CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+  user    User          @relation(fields: [userId], references: [id])
+  userId  String
+  status  EventStatus   @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, userId])
+  @@index([userId])
+}
+
+model EventReminder {
+  id            String        @id @default(cuid())
+  event         CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId       String
+  reminderTime  DateTime
+  message       String?
+  isActive      Boolean       @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
+  @@index([reminderTime])
+}
+
+// NEW: Enhanced Notification System
+model Notification {
+  id       String           @id @default(cuid())
+  type     NotificationType
+  title    String
+  content  String
+  data     Json? // Additional data for different notification types
+  isRead   Boolean          @default(false)
+  
+  user     User             @relation(fields: [userId], references: [id])
+  userId   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+// NEW: Progress Tracking System
+model ProgressRecord {
+  id          String      @id @default(cuid())
+  mentee      User        @relation(fields: [menteeId], references: [id])
+  menteeId    String
+  category    String      // e.g., "coding", "communication", "project_management"
+  subcategory String?     // e.g., "javascript", "presentation_skills"
+  score       Float       // 0-100 scale
+  maxScore    Float       @default(100)
+  notes       String?
+  attachments String[]    // URLs to files/screenshots
+  
+  // Metadata for tracking
+  recordedBy  String      // User ID of who recorded this (usually mentor)
+  recordType  RecordType  @default(MANUAL)
+  tags        String[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([menteeId])
+  @@index([category])
+  @@index([createdAt])
+}
+
+// NEW: Analytics Views for Dashboard
+model AnalyticsView {
+  id         String        @id @default(cuid())
+  user       User          @relation(fields: [userId], references: [id])
+  userId     String
+  viewType   AnalyticsType
+  filters    Json? // Store filter configurations
+  chartType  String        // "line", "bar", "pie", "area", etc.
+  isDefault  Boolean       @default(false)
+  position   Int           @default(0) // For ordering in dashboard
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Existing models remain the same...
+model Post {
+  id        String     @id @default(cuid())
+  content   String     @db.Text
+  images    String[]
+  published Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  author    User       @relation(fields: [authorId], references: [id])
+  authorId  String
+  comments  Comment[]
+  reactions Reaction[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+}
+
+model Reaction {
+  id        String       @id @default(cuid())
+  type      ReactionType
+  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  user      User         @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime     @default(now())
+
+  @@unique([postId, userId])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  reviewer   User     @relation("ReviewReviewer", fields: [reviewerId], references: [id])
+  reviewerId String
+  mentor     User     @relation("ReviewMentor", fields: [mentorId], references: [id])
+  mentorId   String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  @@index([mentorId])
+}
+
+model MentorFeedback {
+  id        String   @id @default(cuid())
+  mentor    User     @relation("FeedbackByMentor", fields: [mentorId], references: [id])
+  mentorId  String
+  mentee    User     @relation("FeedbackForMentee", fields: [menteeId], references: [id])
+  menteeId  String
+  score     Int?
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@index([mentorId])
+  @@index([menteeId])
+}
+
+// Chat Models
+model ChatServer {
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  image       String?
+  owner       User           @relation("ServerOwner", fields: [ownerId], references: [id])
+  ownerId     String
+  members     ServerMember[]
+  channels    Channel[]
+  invitations ServerInvitation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ServerInvitation {
+  id        String     @id @default(cuid())
+  server    ChatServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  serverId  String
+  
+  invitedUser   User   @relation("InvitedUser", fields: [invitedUserId], references: [id])
+  invitedUserId String
+  
+  invitedBy   User   @relation("InvitedBy", fields: [invitedById], references: [id])
+  invitedById String
+  
+  status    InvitationStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([serverId])
+  @@index([invitedUserId])
+  @@unique([serverId, invitedUserId])
+}
+
+model ServerMember {
+  id       String     @id @default(cuid())
+  server   ChatServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  serverId String
+  user     User       @relation(fields: [userId], references: [id])
+  userId   String
+  role     MemberRole @default(MEMBER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([serverId, userId])
+}
+
+model Channel {
+  id          String      @id @default(cuid())
+  name        String
+  type        ChannelType
+  description String?
+  server      ChatServer  @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  serverId    String
+  messages    Message[]
+  recordings  Recording[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([serverId, name])
+}
+
+model Message {
+  id        String      @id @default(cuid())
+  content   String      @db.Text
+  type      MessageType @default(TEXT)
+  author    User        @relation(fields: [authorId], references: [id])
+  authorId  String
+  channel   Channel     @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId String
+  files     File[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model File {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  type      FileType
+  size      Int
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  messageId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ChatConversation {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String?
+  messages  ChatMessage[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model ChatMessage {
+  id             String           @id @default(cuid())
+  conversationId String
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String           // 'user' | 'assistant' | 'system'
+  content        String           @db.Text
+  createdAt      DateTime         @default(now())
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+model Recording {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  url         String
+  duration    Int
+  thumbnail   String?
+  channel     Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId   String
+  recorder    User    @relation(fields: [recorderId], references: [id])
+  recorderId  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Assignment {
+  id             String    @id @default(uuid())
+  title          String    // Tên bài tập / Tài liệu
+  description    String?   // Mô tả
+  // Đường dẫn lưu file tài liệu/bài tập gốc mà Tutor đã đăng
+  filePath       String? 
+  // Hạn nộp (nếu có)
+  dueDate        DateTime? 
+  
+  // Liên kết với Tutor (người tạo)
+  tutorId        String
+  tutor          User      @relation("AssignmentTutor", fields: [tutorId], references: [id]) 
+  
+  // Có thể thêm courseId nếu cần liên kết Assignment với Môn học
+  // courseId       String?
+
+  // Quan hệ 1-n: 1 Assignment có nhiều Submission
+  submissions    Submission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Submission {
+  id              String    @id @default(uuid())
+  // Đường dẫn đến file sinh viên nộp
+  filePath        String
+  // Thời gian nộp bài
+  submissionDate  DateTime  @default(now())
+  // Nộp trễ hay không (Alternative Flow 6b)
+  isLate          Boolean   @default(false) 
+  
+  // Quan hệ với User (Sinh viên nộp bài)
+  studentId       String
+  student         User      @relation("SubmissionStudent", fields: [studentId], references: [id])
+  
+  // Quan hệ với Assignment (Bài tập đã nộp)
+  assignmentId    String
+  assignment      Assignment @relation(fields: [assignmentId], references: [id])
+
+  // Có thể thêm điểm số, nhận xét
+  grade           Float?
+  mentorComment   String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([assignmentId])
+}
+
+// NEW ENUMS
+enum EventType {
+  PERSONAL
+  DEADLINE
+  MEETING
+  ASSIGNMENT
+  REMINDER
+  CLASS
+  EXAM
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum EventStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  COMPLETED
+}
+
+enum NotificationType {
+  SERVER_INVITATION
+  MENTEE_REQUEST
+  EVENT_ASSIGNMENT
+  EVENT_REMINDER
+  PROGRESS_UPDATE
+  SYSTEM_ANNOUNCEMENT
+  REVIEW_REMINDER
+}
+
+enum RecordType {
+  MANUAL
+  AUTOMATIC
+  PEER_REVIEW
+  SELF_ASSESSMENT
+}
+
+enum AnalyticsType {
+  PROGRESS_OVERVIEW
+  CATEGORY_BREAKDOWN
+  TIME_SERIES
+  COMPARISON
+  MENTEE_STATISTICS
+  MENTOR_STATISTICS
+  SYSTEM_OVERVIEW
+}
+
+// EXISTING ENUMS
+enum MessageType {
+  TEXT
+  FILE
+  SYSTEM
+}
+
+enum FileType {
+  IMAGE
+  DOCUMENT
+  VIDEO
+  AUDIO
+}
+
+enum UserRole {
+  ADMIN
+  MENTOR
+  MENTEE
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum ReactionType {
+  LIKE
+  HEART
+  HAHA
+  SAD
+  CONGRATS
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum ChannelType {
+  TEXT
+  VOICE
+  VIDEO
+  STREAMING
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
