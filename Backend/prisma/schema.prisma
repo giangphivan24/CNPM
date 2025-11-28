@@ -414,6 +414,7 @@ model Recording {
   updatedAt DateTime @updatedAt
 }
 
+
 model Assignment {
   id             String    @id @default(uuid())
   title          String    // Tên bài tập / Tài liệu
@@ -464,7 +465,6 @@ model Submission {
   @@index([studentId])
   @@index([assignmentId])
 }
-
 // NEW ENUMS
 enum EventType {
   PERSONAL
