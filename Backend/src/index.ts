@@ -4,6 +4,9 @@ import cors from 'cors';
 import authRoutes from './routes/authRoutes';
 import mentorRoutes from './routes/mentorRoutes';
 import eventRoutes from './routes/eventRoutes';
+import submissionRoutes from './routes/submissionRoutes';
+
+
 dotenv.config();
 
 const app: Express = express();
@@ -14,6 +17,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/mentors', mentorRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/submissions', submissionRoutes);
+
 app.get('/', (req: Request, res: Response) => {
   res.send('Server is running!');
 });

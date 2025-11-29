@@ -66,6 +66,10 @@ model User {
 
   chatConversations ChatConversation[]
 
+  // NEW: Assignment & Submission features
+  createdAssignments Assignment[] @relation("AssignmentTutor") // Assignments created by this Tutor
+  submissions        Submission[] @relation("SubmissionStudent") // Submissions made by this Student
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -411,6 +415,57 @@ model Recording {
   updatedAt DateTime @updatedAt
 }
 
+
+model Assignment {
+  id             String    @id @default(uuid())
+  title          String    // Tên bài tập / Tài liệu
+  description    String?   // Mô tả
+  // Đường dẫn lưu file tài liệu/bài tập gốc mà Tutor đã đăng
+  filePath       String? 
+  // Hạn nộp (nếu có)
+  dueDate        DateTime? 
+  
+  // Liên kết với Tutor (người tạo)
+  tutorId        String
+  tutor          User      @relation("AssignmentTutor", fields: [tutorId], references: [id]) 
+  
+  // Có thể thêm courseId nếu cần liên kết Assignment với Môn học
+  // courseId       String?
+
+  // Quan hệ 1-n: 1 Assignment có nhiều Submission
+  submissions    Submission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Submission {
+  id              String    @id @default(uuid())
+  // Đường dẫn đến file sinh viên nộp
+  filePath        String
+  // Thời gian nộp bài
+  submissionDate  DateTime  @default(now())
+  // Nộp trễ hay không (Alternative Flow 6b)
+  isLate          Boolean   @default(false) 
+  
+  // Quan hệ với User (Sinh viên nộp bài)
+  studentId       String
+  student         User      @relation("SubmissionStudent", fields: [studentId], references: [id])
+  
+  // Quan hệ với Assignment (Bài tập đã nộp)
+  assignmentId    String
+  assignment      Assignment @relation(fields: [assignmentId], references: [id])
+
+  // Có thể thêm điểm số, nhận xét
+  grade           Float?
+  mentorComment   String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([assignmentId])
+}
 // NEW ENUMS
 enum EventType {
   PERSONAL
