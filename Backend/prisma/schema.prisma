@@ -126,6 +126,7 @@ model CalendarEvent {
 
   @@index([creatorId])
   @@index([startTime])
+
 }
 
 model EventAssignment {

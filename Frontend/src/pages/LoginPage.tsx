@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
-import imglogin from '../assets/login.png'; 
+import imglogin from '../assets/login.png';
 import logo from '../assets/logo.png';
 
 const LoginPage = () => {
@@ -9,7 +9,7 @@ const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    role: 'student' 
+    role: 'student'
   });
   const [error, setError] = useState('');
 
@@ -37,11 +37,11 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex">
-      
+
       <div className="hidden lg:block lg:w-2/3 relative">
-        <img 
-          src={imglogin} 
-          alt="Trường ĐH Bách Khoa" 
+        <img
+          src={imglogin}
+          alt="Trường ĐH Bách Khoa"
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black/10"></div>
@@ -50,7 +50,7 @@ const LoginPage = () => {
 
       <div className="w-full lg:w-1/3 flex flex-col justify-start pt-24 items-center bg-white px-8 md:px-16">
         <div className="w-full max-w-md">
-          
+
           <div className="flex items-center justify-center mb-10">
             <img src={logo} alt="Logo" className="h-14 w-auto object-contain" />
             <div className="h-10 w-[1px] bg-gray-300 mx-4"></div>
@@ -105,7 +105,7 @@ const LoginPage = () => {
                   <option value="admin">Admin</option>
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-700">
-                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
                 </div>
               </div>
             </div>
@@ -118,12 +118,26 @@ const LoginPage = () => {
             </div>
 
             {/* Nút Đăng nhập */}
-            <button
-              type="submit"
-              className="w-full bg-[#0056b3] text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-lg shadow-blue-900/20 active:scale-[0.98]"
-            >
-              Đăng nhập
-            </button>
+            <div className="space-y-3"> {/* Thêm div bao ngoài để tạo khoảng cách giữa 2 nút */}
+
+              {/* Nút Đăng nhập (Màu Xanh Dương) */}
+              <button
+                type="submit"
+                className="w-full bg-[#0056b3] text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-lg shadow-blue-900/20 active:scale-[0.98]"
+              >
+                Đăng nhập
+              </button>
+
+              {/* Nút Đăng ký (Màu Xanh Lá) - MỚI */}
+              <button
+                type="button" // Quan trọng: type="button" để không submit form login
+                onClick={() => navigate('/register')}
+                className="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition-all duration-300 shadow-lg shadow-green-900/20 active:scale-[0.98]"
+              >
+                Đăng ký tài khoản
+              </button>
+
+            </div>
           </form>
 
         </div>

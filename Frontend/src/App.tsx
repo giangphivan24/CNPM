@@ -1,32 +1,48 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import MainLayout from './layouts/MainLayout';
+
+// Lưu ý: Dựa vào ảnh, MainLayout đang nằm trong folder 'pages'
+import MainLayout from './pages/MainLayout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import ForgotPassword from './pages/ForgotPassword';
 import VerifyOTP from './pages/VerifyOTP';
 import ChangePassword from './pages/ChangePassword';
 
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Route cho trang Login (Không cần MainLayout vì nó full màn hình) */}
-        <Route path="/login" element={<LoginPage />} />
 
-        {/* Các route còn lại sẽ nằm trong MainLayout */}
+        {/* --- NHÓM 1: CÁC TRANG KHÔNG CÓ HEADER (AUTH) --- */}
+        {/* Khi Logout, code trong MainLayout sẽ navigate('/login'), lọt vào đây -> Mất Header */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
+        <Route path="/change-password" element={<ChangePassword />} />
+
+        {/* --- NHÓM 2: CÁC TRANG CÓ HEADER (MAIN APP) --- */}
+        {/* Vì MainLayout của bạn dùng {children}, nên ta bọc component con vào giữa */}
+
         <Route path="/" element={
           <MainLayout>
             <HomePage />
           </MainLayout>
         } />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/verify-otp" element={<VerifyOTP />} />
-        <Route path="/change-password" element={<ChangePassword />} />
-        
-        {/* Route mẫu cho danh sách gia sư */}
-         <Route path="/mentors" element={
+
+        <Route path="/mentors" element={
           <MainLayout>
-            <div className="p-10 text-center">Trang danh sách gia sư (Đang phát triển)</div>
+            {/* <Mentors /> <-- Nếu có file thì dùng cái này */}
+            <div className="p-10 text-center text-gray-500 font-medium">
+              Trang danh sách gia sư (Đang phát triển)
+            </div>
+          </MainLayout>
+        } />
+
+        {/* Các route khác (Dashboard, Forum...) cũng làm tương tự */}
+        <Route path="/dashboard" element={
+          <MainLayout>
+            <div className="p-10 text-center">Bảng điều khiển</div>
           </MainLayout>
         } />
 
