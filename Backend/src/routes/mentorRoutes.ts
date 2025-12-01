@@ -6,7 +6,7 @@ const router = Router();
 
 router.get('/', getAllMentors);
 
-// Protected: Cập nhật hồ sơ (Phải login mới làm được)
+// Cập nhật hồ sơ (Phải login mới làm được)
 router.put('/profile', authenticateToken, updateProfile);
 router.get('/', getAllMentors);
 router.get('/:id', getMentorById);

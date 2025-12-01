@@ -1,9 +1,8 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middlewares/authMiddleware';
 import prisma from '../utils/prisma';
-import { NotificationType, UserRole } from '@prisma/client'; // Import Enum từ Prisma
+import { NotificationType, UserRole } from '@prisma/client';
 
-// 1. Cập nhật hồ sơ Mentor (GIỮ NGUYÊN code cũ của bạn)
 export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;
@@ -34,19 +33,19 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
   }
 };
 
-// 2. Lấy danh sách Mentor (NÂNG CẤP: Thêm chức năng tìm kiếm)
+// Lấy danh sách Mentor 
 export const getAllMentors = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { search } = req.query;
+    // const { search } = req.query;
+    const search = req.query.search as string | undefined;
 
-    // Tạo điều kiện lọc (Where Clause)
     const whereCondition: any = {
-      role: UserRole.MENTOR, // Chỉ lấy Mentor
-      mentorProfile: { isNot: null } // Mentor phải có profile rồi mới hiện
+      role: UserRole.MENTOR, 
+      mentorProfile: { isNot: null } 
     };
 
-    // Nếu có từ khóa tìm kiếm
-    if (search && typeof search === 'string') {
+    // if (search && typeof search === 'string') {
+    if (search) {
       const keyword = search.trim();
       whereCondition.OR = [
         { name: { contains: keyword, mode: 'insensitive' } }, // Tìm theo tên
@@ -81,7 +80,6 @@ export const getAllMentors = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// 3. Lấy chi tiết một Mentor (MỚI: Dùng cho trang Detail)
 export const getMentorById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -93,7 +91,6 @@ export const getMentorById = async (req: Request, res: Response): Promise<void> 
       },
       include: {
         mentorProfile: true, // Lấy full thông tin profile
-        // Có thể include thêm review nếu muốn: receivedReviews: true
       }
     });
 
@@ -109,10 +106,7 @@ export const getMentorById = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-/*
-  Cái này tui làm thêm phần gửi yêu cầu làm mentor cho hệ thống dành cho mentee
-*/
-// 4. Gửi yêu cầu đăng ký học (MỚI: Xử lý Form Modal)
+
 export const applyMentor = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const studentId = req.user?.userId; // Lấy ID người đang đăng nhập
@@ -128,20 +122,29 @@ export const applyMentor = async (req: AuthRequest, res: Response): Promise<void
       return;
     }
 
+    // Mentor có tồn tại không?
+    const mentorExists = await prisma.user.findUnique({
+        where: { id: mentorId, role: UserRole.MENTOR }
+    });
+    if (!mentorExists) {
+        res.status(404).json({ message: 'Mentor không tồn tại.' });
+        return;
+    }
+
     // Tạo thông báo gửi đến Mentor
-    // (Theo Schema mới, đây là cách tốt nhất để bắt đầu quy trình kết nối)
     const newNotification = await prisma.notification.create({
       data: {
-        userId: mentorId, // Người nhận là Mentor
-        type: NotificationType.MENTEE_REQUEST, // Loại thông báo: Yêu cầu từ Mentee
+        userId: mentorId, 
+        type: NotificationType.MENTEE_REQUEST, 
         title: `Yêu cầu học môn: ${subject}`,
         content: `Học viên muốn đặt lịch vào ngày ${date} lúc ${time}. Lý do: ${reason}`,
         isRead: false,
-        data: { // Lưu metadata để xử lý sau này
+        data: { 
           studentId: studentId,
           bookingDate: date,
           bookingTime: time,
-          subject: subject
+          subject: subject,
+          reason: reason
         }
       }
     });
