@@ -1,5 +1,3 @@
-// src/types/mentor.ts
-
 export interface MentorProfile {
     expertise: string[];
     rating: number;

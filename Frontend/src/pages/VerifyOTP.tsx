@@ -9,7 +9,7 @@ const VerifyOTP = () => {
   const [otp, setOtp] = useState(['', '', '', '']);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Logic tự động nhảy ô 
+  // Logic nhảy ô 
   const handleChange = (index: number, value: string) => {
     if (isNaN(Number(value))) return; 
     const newOtp = [...otp];
@@ -34,7 +34,6 @@ const VerifyOTP = () => {
     const email = localStorage.getItem('resetEmail'); // Lấy email từ bước trước
 
     try {
-        // Gọi API Backend check OTP
         await axiosClient.post('/auth/verify-otp', { email, otp: otpCode });
         
         // Lưu tạm OTP để dùng cho bước đổi pass 

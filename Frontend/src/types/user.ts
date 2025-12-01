@@ -11,5 +11,5 @@ export interface User {
   email: string;
   role: 'STUDENT' | 'MENTOR' | 'ADMIN';
   bio?: string;
-  mentorProfile?: MentorProfile; // Có thể null nếu user không phải mentor
+  mentorProfile?: MentorProfile; 
 }

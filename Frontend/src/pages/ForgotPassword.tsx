@@ -11,10 +11,7 @@ const ForgotPassword = () => {
     const handleSubmit = async (e: any) => {
     e.preventDefault();
     try {
-        // Gọi API Backend
         await axiosClient.post('/auth/forgot-password', { email });
-        
-        // Lưu email vào localStorage để trang sau dùng
         localStorage.setItem('resetEmail', email); 
         
         alert(`Mã OTP đã được gửi đến ${email}`);
@@ -26,17 +23,13 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Cột trái: Ảnh nền */}
       <div className="hidden lg:block lg:w-2/3 relative">
         <img src={imgforgot} alt="Background" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-black/10"></div>
       </div>
 
-      {/* Cột phải: Form */}
       <div className="w-full lg:w-1/3 flex flex-col justify-start pt-24 items-center bg-white px-8 md:px-16">
-        <div className="w-full max-w-md">
-          
-          {/* Header Logo */}
+        <div className="w-full max-w-md">          
           <div className="flex items-center justify-center mb-10">
             <img src={logo} alt="Logo" className="h-14 w-auto object-contain" />
             <div className="h-10 w-[1px] bg-gray-300 mx-4"></div>

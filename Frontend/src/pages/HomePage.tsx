@@ -1,6 +1,5 @@
 import banner from '../assets/banner.png'; 
 
-// Định nghĩa dữ liệu giả lập cho Review 
 const reviews = [
   { id: 1, name: "Nguyễn Văn A", role: "Học viên", content: "Gia sư rất nhiệt tình, bài giảng dễ hiểu. Rất hài lòng với trải nghiệm!", rating: 5 },
   { id: 2, name: "Trần Thị B", role: "Học viên", content: "Môi trường học thân thiện, chất lượng gia sư tốt. Giúp tôi cải thiện đáng kể điểm số.", rating: 4.5 },
@@ -8,7 +7,6 @@ const reviews = [
 ];
 
 const HomePage = () => {
-  // Hàm hiển thị sao (Star Rating)
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, index) => (
       <span key={index} className={index < Math.floor(rating) ? "text-yellow-400" : "text-gray-300"}>
@@ -19,7 +17,6 @@ const HomePage = () => {
 
   return (
     <div className="w-full">
-      {/* 1. BANNER */}
       <div 
         className="w-full h-[450px] bg-cover bg-center relative mb-12 shadow-sm"
         style={{ backgroundImage: `url(${banner})` }}

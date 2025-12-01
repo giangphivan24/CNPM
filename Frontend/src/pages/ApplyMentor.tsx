@@ -1,10 +1,8 @@
-// src/pages/ApplyMentor.tsx
 import React, { useState, useEffect } from 'react';
 import { Search, Star, Users, ArrowLeft, Clock, MapPin, X } from 'lucide-react';
 import { fetchMentors, applyToMentor } from '../api/mentorApi';
 import type { Mentor } from '../types/mentor';
 
-// --- COMPONENT: BOOKING MODAL ---
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -98,18 +96,15 @@ const BookingModal: React.FC<ModalProps> = ({ isOpen, onClose, mentor, subject }
     );
 };
 
-// --- COMPONENT CHÍNH ---
 const ApplyMentorPage: React.FC = () => {
     const [mentors, setMentors] = useState<Mentor[]>([]);
     const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
     const [search, setSearch] = useState('');
     const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
 
-    // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedSubject, setSelectedSubject] = useState('');
 
-    // 1. Fetch Data
     const handleFetch = async (keyword: string) => {
         try {
             const data = await fetchMentors(keyword);
@@ -127,7 +122,6 @@ const ApplyMentorPage: React.FC = () => {
         if (e.key === 'Enter') handleFetch(search);
     };
 
-    // 2. Render List View
     const renderListView = () => (
         <>
             {/* Search Bar */}
@@ -149,7 +143,6 @@ const ApplyMentorPage: React.FC = () => {
                 </select>
             </div>
 
-            {/* Grid Layout */}
             {mentors.length === 0 ? (
                 <div className="text-center py-20 text-gray-500">
                     <p className="text-lg">Chưa tìm thấy Mentor phù hợp.</p>
@@ -201,7 +194,7 @@ const ApplyMentorPage: React.FC = () => {
         </>
     );
 
-    // 3. Render Detail View
+    // Render Detail View
     const renderDetailView = () => {
         if (!selectedMentor) return null;
         const expertise = selectedMentor.mentorProfile?.expertise || [];
@@ -268,7 +261,6 @@ const ApplyMentorPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#fff0f5] p-4 md:p-8 font-sans">
             <div className="max-w-6xl mx-auto">
-                {/* Header */}
                 <header className="flex items-center justify-between mb-8 bg-white p-4 rounded-xl shadow-sm border border-pink-50">
                     <div className="flex items-center gap-2">
                         <div className="w-10 h-10 bg-[#1a237e] rounded-lg flex items-center justify-center text-white font-bold text-xl">BK</div>

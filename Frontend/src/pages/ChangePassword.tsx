@@ -19,7 +19,6 @@ const ChangePassword = () => {
     const otp = localStorage.getItem('resetOtp');
 
     try {
-        // Gọi API đổi pass (Gửi kèm cả OTP để server tin tưởng)
         await axiosClient.post('/auth/reset-password', {
         email,
         otp,
