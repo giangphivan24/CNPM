@@ -1,0 +1,15 @@
+export { default as HomePage } from './HomePage';
+export { default as LoginPage } from './LoginPage';
+export { default as RegisterPage } from './RegisterPage';
+export { default as ForgotPassword } from './ForgotPassword';
+export { default as VerifyOTP } from './VerifyOTP';
+export { default as ChangePassword } from './ChangePassword';
+export { default as MentorsPage } from './MentorsPage';
+export { default as MentorDetailPage } from './MentorDetailPage';
+export { default as ApplyMentorPage } from './ApplyMentor';
+export { default as EventsPage } from './EventsPage';
+export { default as DashboardPage } from './DashboardPage';
+export { default as ProfilePage } from './ProfilePage';
+export { default as NotificationsPage } from './NotificationsPage';
+export { default as ForumPage } from './ForumPage';
+export { default as ProgramPage } from './ProgramPage';
